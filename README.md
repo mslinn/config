@@ -26,13 +26,11 @@ file:///E:/work/config/test.conf
 ## Installation
 
  1. To build this code, get and install SBT from
-
 ````
 https://github.com/harrah/xsbt
 ````
 
  1. Build and publish this plugin:
-
 ````
 git clone git@github.com/Bookish/config.git
 cd config
@@ -40,7 +38,6 @@ sbt publish-local
 ````
 
  1. Add this to your project's `project/plugins.sbt` (remember that file requires double-spacing):
-
 ````
 addSbtPlugin("com.bookish" % "config" % "0.1.0-SNAPSHOT")
 ````
