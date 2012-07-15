@@ -1,20 +1,20 @@
-sbtPlugin		:= true
+sbtPlugin           := true
 
-name			:= "config"
+name                := "config"
 
-organization	:= "com.bookish"
+organization        := "com.bookish"
 
-crossPaths := false
+crossPaths          := false
 
-version			:= "0.1.0-SNAPSHOT"
+version	            := "0.1.0-SNAPSHOT"
 
-scalaVersion	:= "2.9.1"
+scalaVersion        := "2.9.1"
 
-scalacOptions	++= Seq("-deprecation", "-unchecked")
+scalacOptions	    ++= Seq("-deprecation", "-unchecked")
 
 libraryDependencies += "com.typesafe" % "config" % "0.5.0"
 
-credentials += Credentials("Artifactory Realm", "ci-sb-1.obi.int", "publisher", "itouchb00ks")
+credentials         += Credentials("Artifactory Realm", "ci-sb-1.obi.int", "publisher", "itouchb00ks")
 
 publishTo <<= (version) { version: String =>
   if (version.trim.endsWith("SNAPSHOT"))

@@ -1,76 +1,46 @@
-import sbt._
-import com.typesafe.config.ConfigFactory
+package com.bookish.config
+
+import com.typesafe.config.{ Config, ConfigFactory }
 import java.net.URL
+import sbt._
+import scala.collection.mutable
 
+object SbtDependencies extends Plugin {
+  //val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf")
+  val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf")
+  val jarUrl    = new URL("file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf")
 
-object VersionPlugin extends Plugin {
+  private var _config: Config = ConfigFactory.empty
+  private def config: Config = _config
 
-}
+  private var _url: URL = sampleUrl
 
-private class Lookup(section: String, label: String="") {
-  val configUrl = new URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf")
-  val parsedConfig = ConfigFactory.parseURL(configUrl)
-  if (label.length>0) // credentials are not displayed
-    println("Using the following %s:".format(label))
+  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl` */
+  def fetchFromUrl = _url
 
-  def lookup(key: String) = {
-    val value: String = parsedConfig.getString("bookishDeps.%s.%s".format(section, key))
-    if (label.length>0) // credentials are not displayed
-      println("  " + key + "=" + value)
-    value
+  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl` */
+  def fetchFromUrl_= (url: URL): Unit = {
+    _url = url
+    _config = ConfigFactory.parseURL(url)
   }
-}
 
-object V {
-  private val versions = new Lookup("versions", "versions of dependencies")
+  class Lookup(section: String, label: String="") {
+    val alreadyShown = mutable.HashSet.empty[String]
 
-  val scalaVersion     = versions.lookup("scala")
+    def apply(key: String) = {
+      val value: String = config.getString("definitions.%s.%s".format(section, key))
+      if (!alreadyShown.contains(key)) { // only display each key a maximum of one time
+          alreadyShown += key
+          if (label.length>0) // credential values are not displayed
+            println("  " + key + "=" + value)
+          else
+            println("  " + key + " was retrieved")
+      }
+      value
+    }
+  }
 
-  val bkshBatch        = versions.lookup("bkshBatch")
-  val bkshCommon       = versions.lookup("bkshCommon")
-  val bkshData         = versions.lookup("bkshData")
-  val bkshDomainBus    = versions.lookup("bkshDomainBus")
-  val bkshIngest       = versions.lookup("bkshIngest")
-  val bkshPredictor    = versions.lookup("bkshPredictor")
-  val bkshService      = versions.lookup("bkshService")
-  val bkshSolr         = versions.lookup("bkshSolr")
-
-  val Akka             = versions.lookup("akka")
-  val amazonAWS        = versions.lookup("amazonAWS")
-  val antiXml          = versions.lookup("antiXml")
-  val argot            = versions.lookup("argot")
-  val camel            = versions.lookup("camel")
-  val casbah           = versions.lookup("casbah")
-  val commonsLogging   = versions.lookup("commonsLogging")
-  val commonsNet       = versions.lookup("commonsNet")
-  val dbpool           = versions.lookup("dbpool")
-  val imageScaling     = versions.lookup("imageScaling")
-  val jerkson          = versions.lookup("jerkson")
-  val jetty            = versions.lookup("jetty")
-  val jettyClient      = versions.lookup("jettyClient")
-  val jsoup            = versions.lookup("jsoup")
-  val junit            = versions.lookup("junit")
-  val logback          = versions.lookup("logback")
-  val postgres         = versions.lookup("postgres")
-  val protobuf         = versions.lookup("protobuf")
-  val salat            = versions.lookup("salat")
-  val scalaStm         = versions.lookup("scalaStm")
-  val scalatest        = versions.lookup("scalatest")
-  val slf4j            = versions.lookup("slf4j")
-  val solr             = versions.lookup("solr")
-  val subset           = versions.lookup("subset")
-  val zmqScalaBinding  = versions.lookup("zmqScalaBinding")
-}
-
-object creds {
-  private val credentials = new Lookup("credentials")
-
-  val userid   = credentials.lookup("userid")
-  val password = credentials.lookup("password")
-}
-
-object servers {
-  private val servers = new Lookup("servers", "servers")
-
-  val artifactory = servers.lookup("artifactory")
+  lazy val V           = new Lookup("versions", "versions of dependencies")
+  lazy val credentials = new Lookup("credentials")
+  lazy val servers     = new Lookup("servers", "servers")
 }
