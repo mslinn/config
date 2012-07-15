@@ -3,11 +3,11 @@ information to the host project. The file pointed to by the URI must be in
 [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md) format, and must specify the versions of every
 direct dependency used in your projects.
 Transitive dependencies cannot be controlled, so they are not listed.
-If you want to examine transitive dependencies, see the `[dependencyReport](https://github.com/mslinn/dependencyReport)`
-and `[sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph)` SBT plug-ins.
+If you want to examine transitive dependencies, see the [dependencyReport](https://github.com/mslinn/dependencyReport)
+and [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) SBT plug-ins.
 
 The URI can point to an file contained in this plug-in, a file on your local machine, or a file provided by a web
-server; URIs must comply with the `[java.net.URI](http://docs.oracle.com/javase/7/docs/api/java/net/URI.html)`
+server; URIs must comply with the [java.net.URI](http://docs.oracle.com/javase/7/docs/api/java/net/URI.html)
 specification.
 When building and testing each project locally, use local config files (`file://`) for testing modifications to
 versioning. Once the modifications to your HOCON file work to your satisfaction, publish that file to its public
@@ -27,7 +27,9 @@ file:///E:/work/config/test.conf
 
  1. To build this code, get and install SBT from
 
+````
     https://github.com/harrah/xsbt
+````
 
  1. Build and publish this plugin:
 
@@ -36,6 +38,7 @@ file:///E:/work/config/test.conf
     sbt publish-local
 
  1. Add this to your project's `project/plugins.sbt` (remember that file requires double-spacing):
+
 ````
 addSbtPlugin("com.bookish" % "config" % "0.1.0-SNAPSHOT")
 ````
