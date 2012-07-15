@@ -28,14 +28,16 @@ file:///E:/work/config/test.conf
  1. To build this code, get and install SBT from
 
 ````
-    https://github.com/harrah/xsbt
+https://github.com/harrah/xsbt
 ````
 
  1. Build and publish this plugin:
 
-    git clone git@github.com/Bookish/config.git
-    cd config
-    sbt publish-local
+````
+git clone git@github.com/Bookish/config.git
+cd config
+sbt publish-local
+````
 
  1. Add this to your project's `project/plugins.sbt` (remember that file requires double-spacing):
 
@@ -47,28 +49,30 @@ addSbtPlugin("com.bookish" % "config" % "0.1.0-SNAPSHOT")
 
 Add the following to your project's `build.sbt` or `build.scala`:
 
-    // add imports for the plug-in
-    import com.bookish.config.SbtDependencies
-    import SbtDependencies._
+````
+// add imports for the plug-in
+import com.bookish.config.SbtDependencies
+import SbtDependencies._
 
-    import sbt._
-    import Keys._
+import sbt._
+import Keys._
 
-    // Point to the configuration file
-    SbtDependencies.fetchFromUrl = new java.net.URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf")
+// Point to the configuration file
+SbtDependencies.fetchFromUrl = new java.net.URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf")
 
-    // Use configured versions for dependencies
-    val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V.Akka    withSources()
-    val junit     = "junit"             %  "junit"           % V.junit   % "test"
-    val logback   = "ch.qos.logback"    %  "logback-classic" % V.logback withSources()
+// Use configured versions for dependencies
+val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V.Akka    withSources()
+val junit     = "junit"             %  "junit"           % V.junit   % "test"
+val logback   = "ch.qos.logback"    %  "logback-classic" % V.logback withSources()
 
-    // Use configured credentials authentication
-    credentials += Credentials("Artifactory Realm", "ci-sb-1.obi.int", creds.userid, creds.password)
+// Use configured credentials authentication
+credentials += Credentials("Artifactory Realm", "ci-sb-1.obi.int", creds.userid, creds.password)
 
-    // Access configured servers
-    publishTo <<= (version) { version: String =>
-      if (version.trim.endsWith("SNAPSHOT"))
-        Some("bookish" at servers.artifactory + "libs-snapshot-local/")
-      else
-        Some("bookish" at servers.artifactory + "libs-release-local/")
-    }
+// Access configured servers
+publishTo <<= (version) { version: String =>
+  if (version.trim.endsWith("SNAPSHOT"))
+    Some("bookish" at servers.artifactory + "libs-snapshot-local/")
+  else
+    Some("bookish" at servers.artifactory + "libs-release-local/")
+}
+````
