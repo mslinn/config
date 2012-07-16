@@ -3,32 +3,19 @@ package com.bookish.config
 import com.typesafe.config.{ Config, ConfigFactory }
 import java.net.URL
 import sbt._
+import Keys._
 import scala.collection.mutable
 
 object SbtDependencies extends Plugin {
-  val fetchFromUrlKey = SettingKey[String]("fetch-from-url", "URL to fetch config file from")
+  val configUrl            = SettingKey[String]("config-url", "URL to fetch config file from")
+  private val configConfig    = TaskKey[Config]("config-config")
+  val configVersionsLookup    = TaskKey[Lookup]("config-versions", "Dependency version numbers parsed from config file")
+  val configCredentialsLookup = TaskKey[Lookup]("config-credentials", "versions of dependencies")
+  val configServersLookup     = TaskKey[Lookup]("config-servers", "Userids and passwords parsed from config file")
 
-  val versionsTask = TaskKey[Lookup]("V", "Dependency version numbers parsed from config file")
-  versionsTask <<= fetchFromUrlKey map { (urlStr: String) => // never gets called
-    println("versionsTask was called")
-    fetchFromUrl = new URL(urlStr) // sets config as a side effect
-    new Lookup(config, "versions", "versions of dependencies") }
-
-  val credentialsTask = TaskKey[Lookup]("credentials", "Userids and passwords parsed from config file")
-  credentialsTask <<= fetchFromUrlKey map { (urlStr: String) => // never gets called
-    println("credentialsTask was called")
-    fetchFromUrl = new URL(urlStr) // sets config as a side effect
-    new Lookup(config, "credentials") }
-
-  val serversTask = TaskKey[Lookup]("servers", "Server URLs parsed from config file")
-  serversTask <<= fetchFromUrlKey map { (urlStr: String) => // never gets called
-    println("serversTask was called")
-    fetchFromUrl = new URL(urlStr) // sets config as a side effect
-    new Lookup(config, "servers", "servers") }
-
-  //val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf") // uncomment after v2 branch is merged to master
-  val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf") // delete after v2 branch is merged to master
-  val jarUrl    = new URL("file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf")
+  //val sampleUrl = "https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf" // uncomment after v2 branch is merged to master
+  val sampleUrl = "https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf" // delete after v2 branch is merged to master
+  val jarUrl    = "file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf"
 
   /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl`.
    * If called with the same URL twice, only fetches and parses URL the first time */
@@ -48,22 +35,35 @@ object SbtDependencies extends Plugin {
   private[config] def config: Config = _config
 
   private var _url: URL = _url
-}
 
-class Lookup(config: Config, section: String, label: String="") {
-  val alreadyShown = mutable.HashSet.empty[String]
-  println("Created Lookup " + section)
+  override def settings = Seq(
+    configConfig            <<= configUrl    map { (urlStr: String) => ConfigFactory.parseURL(new URL(urlStr)) },
+    configVersionsLookup    <<= configConfig map (new Lookup(_, "versions", "versions of dependencies")),
+    configCredentialsLookup <<= configConfig map (new Lookup(_, "credentials")),
+    configServersLookup     <<= configConfig map (new Lookup(_, "servers", "servers"))/*,
+    libraryDependencies     <<= (configVersionsLookup, libraryDependencies) apply ( (values, deps) => {
+      // check deps for moduleIDs with group and artifact defined in values.sbtDependencies
+      // and set the configured version
+      // this needs a different layout of the config file
+      deps
+    }*/
+  )
 
-  def apply(key: String) = {
-    val value: String = config.getString("bookishDeps.%s.%s".format(section, key))
-    //val value: String = SbtDependencies.config.getString("definitions.%s.%s".format(section, key))
-    if (!alreadyShown.contains(key)) { // only display each key a maximum of one time
-        alreadyShown += key
-        if (label.length>0) // credential values are not displayed
-          println("  " + section + "." + key + "=" + value)
-        else
-          println("  " + section + "." + key + " was retrieved")
+  case class Lookup(config: Config, section: String, label: String="") {
+    val alreadyShown = mutable.HashSet.empty[String]
+    println("Created Lookup " + section)
+
+    def read(key: String) = {
+      val value: String = config.getString("bookishDeps.%s.%s".format(section, key))
+      //val value: String = config.getString("definitions.%s.%s".format(section, key))
+      if (!alreadyShown.contains(key)) { // only display each key a maximum of one time
+          alreadyShown += key
+          if (label.length>0) // credential values are not displayed
+            println("  " + section + "." + key + "=" + value)
+          else
+            println("  " + section + "." + key + " was retrieved")
+      }
+      value
     }
-    value
   }
 }
