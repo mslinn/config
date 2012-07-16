@@ -22,13 +22,17 @@ object SbtDependencies extends Plugin {
   // fixme how to set to sampleUrl if not user does not specify a value?
   val configUrl = SettingKey[String]("config-url")
   val configConfig = TaskKey[Config]("config-config")
-  val configValues = TaskKey[Values]("config-values")
+  val configVersionsLookup = TaskKey[Lookup]("config-versions-lookup")
+  val configCredentialsLookup = TaskKey[Lookup]("config-credentials-lookup")
+  val configServersLookup = TaskKey[Lookup]("config-servers-lookup")
 
   override def settings = Seq(
     configUrl := sampleUrl,
     configConfig <<= configUrl map (url => ConfigFactory.parseURL(new URL(url))),
-    configValues <<= configConfig map (new Values(_)),
-    libraryDependencies <<= (configValues, libraryDependencies) apply ( (values, deps) => {
+    configVersionsLookup <<= configConfig map (new Lookup(_, "versions", "versions of dependencies")),
+    configCredentialsLookup <<= configConfig map (new Lookup(_, "credentials")),
+    configServersLookup <<= configConfig map (new Lookup(_, "servers", "servers")),
+    libraryDependencies <<= (configVersionsLookup, libraryDependencies) apply ( (values, deps) => {
       // check deps for moduleIDs with group and artifact defined in values.sbtDependencies 
       // and set the configured version
       // this needs a different layout of the config file
@@ -36,14 +40,7 @@ object SbtDependencies extends Plugin {
     })
   )
 
-  // this is probably not the way to expose the looked up values
-  case class Values(config: Config) {
-    val sbtDependencies = new Lookup(config, "versions", "versions of dependencies")
-    val credentials     = new Lookup(config, "credentials")
-    val servers         = new Lookup(config, "servers", "servers")
-  }
-
-  class Lookup(config: Config, section: String, label: String="") {
+  case class Lookup(config: Config, section: String, label: String="") {
     val alreadyShown = mutable.HashSet.empty[String]
 
     def read(key: String) = {
