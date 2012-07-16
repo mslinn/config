@@ -3,6 +3,7 @@ package com.bookish.config
 import com.typesafe.config.{ Config, ConfigFactory }
 import java.net.URL
 import sbt._
+import Keys._
 import scala.collection.mutable
 
 /* This is a mess. The SBT docs are incomprehensible.
@@ -16,41 +17,36 @@ Here is what I want to do:
 Maybe some portion of the code below might be useful.
 */
 object SbtDependencies extends Plugin {
-  // fixme how to set to sampleUrl if not user does not specify a value?
-  val fetchFromUrlKey = SettingKey[String]("fetch-from-url")
-  fetchFromUrlKey := fetchFromUrl
+  val sampleUrl = "https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf"
 
-  sbtDependencies <<= values
+  // fixme how to set to sampleUrl if not user does not specify a value?
+  val configUrl = SettingKey[String]("config-url")
+  val configConfig = TaskKey[Config]("config-config")
+  val configValues = TaskKey[Values]("config-values")
+
+  override def settings = Seq(
+    configUrl := sampleUrl,
+    configConfig <<= configUrl map (url => ConfigFactory.parseURL(new URL(url))),
+    configValues <<= configConfig map (new Values(_)),
+    libraryDependencies <<= (configValues, libraryDependencies) apply ( (values, deps) => {
+      // check deps for moduleIDs with group and artifact defined in values.sbtDependencies 
+      // and set the configured version
+      // this needs a different layout of the config file
+      deps
+    })
+  )
 
   // this is probably not the way to expose the looked up values
-  object values {
-    val sbtDependencies = new Lookup("versions", "versions of dependencies")
-    val credentials     = new Lookup("credentials")
-    val servers         = new Lookup("servers", "servers")
+  case class Values(config: Config) {
+    val sbtDependencies = new Lookup(config, "versions", "versions of dependencies")
+    val credentials     = new Lookup(config, "credentials")
+    val servers         = new Lookup(config, "servers", "servers")
   }
 
-  //val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf")
-  val sampleUrl = new URL("https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf")
-  val jarUrl    = new URL("file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf")
-
-  private var _config: Config = ConfigFactory.empty
-  private def config: Config = _config
-
-  private var _url: URL = sampleUrl
-
-  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl` */
-  def fetchFromUrl = _url
-
-  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl` */
-  def fetchFromUrl_= (url: URL): Unit = {
-    _url = url
-    _config = ConfigFactory.parseURL(url)
-  }
-
-  class Lookup(section: String, label: String="") {
+  class Lookup(config: Config, section: String, label: String="") {
     val alreadyShown = mutable.HashSet.empty[String]
 
-    def apply(key: String) = {
+    def read(key: String) = {
       val value: String = config.getString("definitions.%s.%s".format(section, key))
       if (!alreadyShown.contains(key)) { // only display each key a maximum of one time
           alreadyShown += key
