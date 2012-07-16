@@ -17,26 +17,8 @@ object SbtDependencies extends Plugin {
   val sampleUrl = "https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf" // delete after v2 branch is merged to master
   val jarUrl    = "file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf"
 
-  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl`.
-   * If called with the same URL twice, only fetches and parses URL the first time */
-  def fetchFromUrl_= (url: URL): Unit = {
-    if (_url == url)
-      return
-
-    _url = url
-    _config = ConfigFactory.parseURL(_url)
-    println("SbtDependencies: fetched from %s:\n%s".format(url, _config.toString))
-  }
-
-  /** URL specified by user, defaults to value of `SbtDependencies.sampleUrl` */
-  def fetchFromUrl = _url
-
-  private var _config: Config = ConfigFactory.empty
-  private[config] def config: Config = _config
-
-  private var _url: URL = _url
-
   override def settings = Seq(
+    configUrl               := sampleUrl, // fixme only want to set to sampleUrl if not user does not specify a value.
     configConfig            <<= configUrl    map { (urlStr: String) => ConfigFactory.parseURL(new URL(urlStr)) },
     configVersionsLookup    <<= configConfig map (new Lookup(_, "versions", "versions of dependencies")),
     configCredentialsLookup <<= configConfig map (new Lookup(_, "credentials")),
@@ -51,7 +33,7 @@ object SbtDependencies extends Plugin {
 
   case class Lookup(config: Config, section: String, label: String="") {
     val alreadyShown = mutable.HashSet.empty[String]
-    println("Created Lookup " + section)
+    println("Created Lookup " + section) // never called
 
     def read(key: String) = {
       val value: String = config.getString("bookishDeps.%s.%s".format(section, key))
