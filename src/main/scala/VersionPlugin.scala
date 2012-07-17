@@ -35,7 +35,7 @@ object SbtDependencies extends Plugin {
 
   class Lookup(entireConfig: Config, val section: String, label: String="") {
     val alreadyShown = mutable.HashSet.empty[String]
-    println("Creating Lookup " + section)
+    println("Creating " + section)
     val config = entireConfig.getConfig("bookishDeps.%s".format(section))
 
     def apply(key: String) = {
