@@ -9,6 +9,7 @@ import org.scalatest.{BeforeAndAfterAll, WordSpec}
 class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfterAll {
 
   override def beforeAll {
+    SbtProjectConfig.outerSectionName = "bookishDeps"
   }
 
   "An SbtProjectConfig config" must {

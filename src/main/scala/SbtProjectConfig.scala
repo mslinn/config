@@ -24,6 +24,7 @@ object servers extends SbtProjectConfig {
 }
 
 object SbtProjectConfig {
+  var outerSectionName: String = "definitions"
   //val sampleUrl = "https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf" // uncomment after v2 branch is merged to master
   val sampleUrl = "https://raw.github.com/Bookish/config/master/scalaBuild/Build.conf" // delete after v2 branch is merged to master
   val jarUrl    = "file:///home/mslinn/.ivy2/local/com.bookish/config/scala_2.9.1/sbt_0.11.3/0.1.0-SNAPSHOT/jars/config.jar!/definitions.conf"
@@ -56,7 +57,7 @@ class SbtProjectConfig(fetchFromUrl: String = sampleUrl) {
   class Lookup(val section: String, label: String="") {
     val alreadyShown = mutable.HashSet.empty[String]
     println("Defining " + section)
-    val config = entireConfig.getConfig("bookishDeps.%s".format(section))
+    val config = entireConfig.getConfig("%s.%s".format(outerSectionName, section))
 
     def apply(key: String) = {
       val value: String = config.getString("%s".format(key))
