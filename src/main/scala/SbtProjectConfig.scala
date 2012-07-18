@@ -8,17 +8,17 @@ import collection.JavaConversions._
 
 object V extends SbtProjectConfig {
   val lookup = new Lookup("versions", "versions of dependencies")
-  makeSettings("V", lookup)
+  makeSettings(lookup)
 }
 
 object creds extends SbtProjectConfig {
   val lookup = new Lookup("credentials")
-  makeSettings("creds", lookup)
+  makeSettings(lookup)
 }
 
 object servers extends SbtProjectConfig {
   val lookup = new Lookup("servers", "servers")
-  makeSettings("servers", lookup)
+  makeSettings(lookup)
 }
 
 object SbtProjectConfig {
@@ -43,7 +43,7 @@ class SbtProjectConfig(fetchFromUrl: String = sampleUrl) {
     }
   }
 
-  def makeSettings(prefix:String, lookup: Lookup): Unit = {
+  def makeSettings(lookup: Lookup): Unit = {
     lookup.config.entrySet foreach { kv =>
       val key = kv.getKey
       val value = kv.getValue.unwrapped.toString
