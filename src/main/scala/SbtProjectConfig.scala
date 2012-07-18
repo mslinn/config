@@ -7,8 +7,6 @@ import scala.collection.mutable
 import collection.JavaConversions._
 
 object V extends SbtProjectConfig {
-  val spc = new SbtProjectConfig
-
   val lookup = new Lookup("versions", "versions of dependencies")
   makeSettings("V", lookup)
 }
