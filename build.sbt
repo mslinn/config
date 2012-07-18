@@ -1,5 +1,3 @@
-sbtPlugin           := true
-
 name                := "config"
 
 organization        := "com.bookish"
@@ -12,7 +10,9 @@ scalaVersion        := "2.9.1"
 
 scalacOptions	    ++= Seq("-deprecation", "-unchecked")
 
-libraryDependencies += "com.typesafe" % "config" % "0.5.0"
+libraryDependencies += "com.typesafe"  %  "config"   % "0.5.0"
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "1.7.1" % "test" withSources()
 
 credentials         += Credentials("Artifactory Realm", "ci-sb-1.obi.int", "publisher", "itouchb00ks")
 
