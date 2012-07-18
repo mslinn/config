@@ -59,17 +59,6 @@ class SbtProjectConfig(fetchFromUrl: String = sampleUrl) {
     println("Defining " + section)
     val config = entireConfig.getConfig("%s.%s".format(outerSectionName, section))
 
-    def apply(key: String) = {
-      val value: String = config.getString("%s".format(key))
-      //val value: String = config.getString("definitions.%s.%s".format(section, key))
-      if (!alreadyShown.contains(key)) { // only display each key a maximum of one time
-          alreadyShown += key
-          if (label.length>0) // credential values are not displayed
-            println("  " + section + "." + key + "=" + value)
-          else
-            println("  " + section + "." + key + " was retrieved")
-      }
-      value
-    }
+    def apply(key: String) = config.getString("%s".format(key))
   }
 }
