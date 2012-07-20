@@ -21,7 +21,7 @@ Examples of the URI would include the a file on a local drive or an Internet add
 Here are some examples of valid `fetchFromUrl` values:
 
 ````
-https://raw.github.com/mslinn/config/v2/src/main/resources/definitions.conf
+https://raw.github.com/mslinn/config/v3/src/main/resources/definitions.conf
 file:///E:/work/config/test.conf
 ````
 
