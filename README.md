@@ -1,4 +1,8 @@
-This sbt plugin pulls dependency information from a file pointed to by a URI and provides variables with config
+`SbtProjectConfig` is an SBT enhancement which allows you to manage the versions of your dependencies across multiple
+projects in a consistent manner. If you have multiple SBT projects that need to come together, and you are tired of
+discovering too late that they were built with differing versions of dependencies, then this SBT enhancment is for you.
+
+`SbtProjectConfig` pulls dependency information from a file pointed to by a URI and provides variables with config
 information to the host project. The file pointed to by the URI must be in
 [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md) format, and must specify the versions of every
 direct dependency used in your projects.
@@ -13,38 +17,41 @@ When building and testing each project locally, use local config files (`file://
 versioning. Once the modifications to your HOCON file work to your satisfaction, publish that file to its public
 location for usage by all of your organization's projects.
 
-This plug-in has a property called `fetchFromUrl`, and it should be set to the URI of the HOCON file.
-Examples of the URI would include the plug-in's internal version file, a file on a local drive, or an Internet address.
+`SbtProjectConfig` has a property called `fetchFromUrl`, and it should be set to the URI of the HOCON file.
+Examples of the URI would include the a file on a local drive or an Internet address.
 Here are some examples of valid `fetchFromUrl` values:
 
 ````
 https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf
-file:///home/mslinn/.ivy2/local/com.bookish/config/0.1-SNAPSHOT/jars/config.jar!/definitions.conf
 file:///E:/work/config/test.conf
 ````
 
 ## Installation
 
- 1. To build this code, get and install SBT from
+ 1. Get and install SBT from
 ````
 https://github.com/harrah/xsbt
 ````
 
- 1. Build and publish this plugin:
+ 1. Build and publish `SbtProjectConfig`:
 ````
 git clone git@github.com/Bookish/config.git
 cd config
 sbt publish-local
 ````
 
- 1. Add this to your project's `project/plugins.sbt` (remember that file requires double-spacing):
+ 1. Add this to your project's `project/build.sbt` (remember that file requires double-spacing):
 ````
-addSbtPlugin("com.bookish" % "config" % "0.3.1-SNAPSHOT")
+libraryDependencies += "com.bookish" % "config" % "0.3.1-SNAPSHOT" withSources()
 ````
 
-## Usage
+## Sample Usage
 
-Add the following to your project's `build.scala`:
+See the [ConfigTest](https://github.com/mslinn/configTest) project for a small but complete working example of how to
+use `SbtProjectConfig`.
+
+In the following sample `build.scala`, note that `V()` defines version numbers of dependencies, `creds()` defines
+userid and password, and `servers()` defines URLs of remote resources.
 
 ````
 import com.bookish.config.{SbtProjectConfig, V, creds, servers}
