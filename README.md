@@ -10,9 +10,8 @@ Transitive dependencies cannot be controlled, so they are not listed.
 If you want to examine transitive dependencies, see the [dependencyReport](https://github.com/mslinn/dependencyReport)
 and [sbt-dependency-graph](https://github.com/jrudolph/sbt-dependency-graph) SBT plug-ins.
 
-The URI can point to an file contained in this plug-in, a file on your local machine, or a file provided by a web
-server; URIs must comply with the [java.net.URI](http://docs.oracle.com/javase/7/docs/api/java/net/URI.html)
-specification.
+The URI can point to a file on your local machine or a file provided by a web server.
+URIs must comply with the [java.net.URI](http://docs.oracle.com/javase/7/docs/api/java/net/URI.html) specification.
 When building and testing each project locally, use local config files (`file://`) for testing modifications to
 versioning. Once the modifications to your HOCON file work to your satisfaction, publish that file to its public
 location for usage by all of your organization's projects.
@@ -22,7 +21,7 @@ Examples of the URI would include the a file on a local drive or an Internet add
 Here are some examples of valid `fetchFromUrl` values:
 
 ````
-https://raw.github.com/Bookish/config/master/src/scala/main/resource/definitions.conf
+[https://raw.github.com/mslinn/config/v2/src/main/resources/definitions.conf](https://raw.github.com/mslinn/config/v2/src/main/resources/definitions.conf)
 file:///E:/work/config/test.conf
 ````
 
@@ -40,7 +39,8 @@ cd config
 sbt publish-local
 ````
 
- 1. Add this to your project's `project/build.sbt` (remember that file requires double-spacing):
+ 1. Add this to your project's `project/build.sbt` (remember that file requires double-spacing).
+Note that this SBT enhancement is not a plug-in.
 ````
 libraryDependencies += "com.bookish" % "config" % "0.3.1-SNAPSHOT" withSources()
 ````
@@ -59,8 +59,8 @@ import sbt._
 import Keys._
 
 // Point to the appropriate configuration file
-SbtProjectConfig.fetchFromUrl     = "https://raw.github.com/Bookish/config/v3/src/main/resources/definitions.conf"
-SbtProjectConfig.quiet            = true
+SbtProjectConfig.fetchFromUrl = "https://raw.github.com/Bookish/config/v3/src/main/resources/definitions.conf"
+SbtProjectConfig.quiet        = true
 
 // Use configured versions for dependencies
 val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V("Akka")    withSources()
