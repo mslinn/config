@@ -17,6 +17,16 @@ object creds extends SbtProjectConfig {
   makeSettings(lookup)
 }
 
+object repositories extends SbtProjectConfig {
+  val lookup = new Lookup("repositories")
+  makeSettings(lookup)
+}
+
+object vToRepo extends SbtProjectConfig {
+  val lookup = new Lookup("vToRepo")
+  makeSettings(lookup)
+}
+
 object servers extends SbtProjectConfig {
   val lookup = new Lookup("servers", "servers")
   makeSettings(lookup)
@@ -38,28 +48,32 @@ class SbtProjectConfig {
   private val keyValues = mutable.HashMap.empty[String, String]
   val alreadyShown = mutable.HashSet.empty[String]
 
-  private var entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
+  private val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
 //  println("Config fetched from %s:\n%s".format(url, entireConfig.toString))
 
   def apply(key: String) = {
-    if (keyValues.contains(key)) {
-      val value = keyValues.get(key).get
-      if (!quiet && !alreadyShown.contains(key)) {
-        alreadyShown += key
-        println("  %s = %s".format(key, value))
+    val sanitizedKey = sanitizeKey(key)
+    val value = keyValues.get(sanitizedKey)
+    if (value!=None) {
+      if (!quiet && !alreadyShown.contains(sanitizedKey)) {
+        alreadyShown += sanitizedKey
+        println("  %s = %s".format(sanitizedKey, value.get))
       }
-      value
+      value.get
     } else {
-      println("Warning: %s is not defined in the config file at %s".format(key, fetchFromUrl))
+      println("Warning: %s is not defined in the config file at %s".format(sanitizedKey, fetchFromUrl))
       ""
     }
   }
+
+  /** Work around Config bug */
+  def sanitizeKey(key: String) = key.replace("\"", " ").trim
 
   def makeSettings(lookup: Lookup): SortedMap[String, String] = {
     lookup.config.entrySet foreach { kv =>
       val key = kv.getKey
       val value = kv.getValue.unwrapped.toString
-      keyValues.put(key, value)
+      keyValues.put(sanitizeKey(key), value)
     }
     SortedMap.empty[String, String] ++ (keyValues.toList.sortBy(_._1))
   }

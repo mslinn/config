@@ -9,37 +9,44 @@ import org.scalatest.{BeforeAndAfterAll, WordSpec}
 class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfterAll {
 
   override def beforeAll {
-    SbtProjectConfig.outerSectionName = "bookishDeps"
+    SbtProjectConfig.outerSectionName = "definitions"
+    // assumes that the unit test is running from the project root
+    SbtProjectConfig.fetchFromUrl = "file://" + sys.props.get("user.dir").get + "/target/classes/definitions.conf"
+    println(SbtProjectConfig.fetchFromUrl)
   }
 
   "An SbtProjectConfig config" must {
-    "Read raw config file from github" in {
+    "read raw config file from github" in {
 
     }
 
-    "Read config file from jar" in {
+    "read config file from jar" in {
 
     }
 
-    "Read config file from local file" in {
+    "read config file from local file" in {
 
     }
   }
 
   "An SbtProjectConfig" must {
-    "Create V entries" in {
+    "create V entries" in {
       expect("2.9.1", "")(V("scala"))
     }
 
-    "Create server entries" in {
+    "create server entries" in {
       expect("http://ci-sb-1.obi.int:8081/artifactory/", "")(servers("artifactory"))
     }
 
-    "Create creds entries" in {
-       expect("itouchb00ks", "")(creds("password"))
+    "create creds entries" in {
+      expect("itouchb00ks", "")(creds("password"))
     }
 
-    "Gracefully reject undefined entries" in {
+    "create repositories entries" in {
+      expect("http://repo.typesafe.com/typesafe/releases/", "")(repositories("Typesafe Releases"))
+    }
+
+    "gracefully reject undefined entries" in {
       expect("", "")(V("blah"))
     }
   }
