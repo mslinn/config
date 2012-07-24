@@ -87,7 +87,7 @@ resolvers ++= referencedRepos.map { r =>
 }.toSeq
 
 // manually create entries in referencedRepos for transitive dependencies not found by the resolvers that were
-// automatically set up, because SbtProjectConfig does not walk through the Ivy cache
+// automatically set up, because `SbtProjectConfig` does not walk the Ivy cache
 Seq( V("antiXml"), V("liftJson") )
 
 // alternatively, if you prefer to specify resolvers manually:
