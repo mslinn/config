@@ -80,7 +80,8 @@ val junit     = "junit"             %  "junit"           % V("junit")   % "test"
 val logback   = "ch.qos.logback"    %  "logback-classic" % V("logback") withSources()
 
 // this section must follow the V() dependency usages in order to work, because referencedRepos is set as a side-effect
-// of each V() usage
+// of each V() usage. If you build file has a different structure, possibly using lazy vals, be sure that all the V()
+// dependency usages are evaluated before this section is executed
 resolvers ++= referencedRepos.map { r =>
   //println("Adding resolver: " + r)
   (r at repositories(r))
