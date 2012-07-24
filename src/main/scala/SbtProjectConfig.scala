@@ -55,9 +55,34 @@ class SbtProjectConfig {
   private[config] val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
 //  println("Config fetched from %s:\n%s".format(url, entireConfig.toString))
 
-  def apply(key: String): String = get(key).toString
+  private[config] val repositoriesDefined = {
+    val hasRepositories = entireConfig.hasPath("%s.repositories".format(outerSectionName))
+    val hasVToRepo = entireConfig.hasPath("%s.vToRepo".format(outerSectionName))
+    if (hasRepositories && !hasVToRepo) {
+      println("Warning: %s contains a '%s.repositories' section, but not a '%s.vToRepo' section".
+        format(fetchFromUrl, outerSectionName, outerSectionName))
+    } else if (!hasRepositories && hasVToRepo) {
+      println("Warning: %s contains a '%s.vToRepo' section, but not a '%s.repositories' section".
+        format(fetchFromUrl, outerSectionName, outerSectionName))
+    } else if (hasRepositories && hasVToRepo) {
+      if (!quiet)
+        println("Using repository information in %s".format(fetchFromUrl))
+    } else {
+      //if (!quiet)
+        println("No repository information found in %s; ensure that resolvers are explicitly specified in the build file".format(fetchFromUrl))
+    }
+    hasRepositories && hasVToRepo
+  }
 
-  def get(key: String): Any = {
+
+  def apply(key: String): String = {
+    val value = get(key).toString
+    if (repositoriesDefined)
+      vToRepo.maybeAddRepo(key, value)
+    value
+  }
+
+  def get(key: String, issueWarning: Boolean = true): Any = {
     val sanitizedKey = sanitizeKey(key)
     val value = keyValues.get(sanitizedKey)
     if (value!=None) {
@@ -67,13 +92,15 @@ class SbtProjectConfig {
       }
       value.get
     } else {
-      println("Warning: %s is not defined in the config file at %s".format(sanitizedKey, fetchFromUrl))
+      if (issueWarning)
+        println("Warning: %s is not defined in the config file at %s".format(sanitizedKey, fetchFromUrl))
       ""
     }
   }
 
-  def apply(key: String, version: String): String = {
-    val value = get(key)
+  /** Just used by repositories */
+  def maybeAddRepo(key: String, version: String): String = {
+    val value = get(key, false)
     val repo: String = if (version.endsWith("SNAPSHOT")) {
       if (value.isInstanceOf[util.ArrayList[String]] && value.asInstanceOf[util.ArrayList[String]].length>1)
         value.asInstanceOf[util.ArrayList[String]](1)
@@ -88,8 +115,11 @@ class SbtProjectConfig {
     //println(repositories.keyValues)
     val repoUrl: String = repositories.keyValues.getOrElse(repo, "").toString
     if (repoUrl.length>0) {
-      referencedRepos += repo
-      println("Adding %s to referencedRepos".format(repo))
+      if (!referencedRepos.contains(repo)) {
+        if (!quiet)
+          println("""  Adding "%s" to referencedRepos""".format(repo))
+        referencedRepos += repo
+      }
     }
     repoUrl
   }

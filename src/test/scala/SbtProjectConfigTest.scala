@@ -9,6 +9,7 @@ import org.scalatest.{BeforeAndAfterAll, WordSpec}
 class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfterAll {
 
   override def beforeAll {
+    SbtProjectConfig.quiet = false
     SbtProjectConfig.outerSectionName = "definitions"
     // assumes that the unit test is running from the project root
     SbtProjectConfig.fetchFromUrl = "file://" + sys.props.get("user.dir").get + "/target/classes/definitions.conf"
@@ -32,6 +33,20 @@ class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfte
   "An SbtProjectConfig" must {
     "create V entries" in {
       expect("2.9.1", "")(V("scala"))
+
+      V("akka")
+      println(SbtProjectConfig.referencedRepos)
+      assert(SbtProjectConfig.referencedRepos.contains("Typesafe Releases"))
+      assert(!SbtProjectConfig.referencedRepos.contains("Typesafe Snapshots"))
+      assert(!SbtProjectConfig.referencedRepos.contains("Bookish Releases"))
+      assert(!SbtProjectConfig.referencedRepos.contains("Bookish Snapshots"))
+
+      V("bkshDomainBus")
+      println(SbtProjectConfig.referencedRepos)
+      assert(SbtProjectConfig.referencedRepos.contains("Typesafe Releases"))
+      assert(!SbtProjectConfig.referencedRepos.contains("Typesafe Snapshots"))
+      assert(!SbtProjectConfig.referencedRepos.contains("Bookish Releases"))
+      assert(SbtProjectConfig.referencedRepos.contains("Bookish Snapshots"))
     }
 
     "create server entries" in {
@@ -47,16 +62,14 @@ class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfte
     }
 
     "create vToRepo entries" in {
-      expect("http://repo.typesafe.com/typesafe/releases/", "")(vToRepo("akka", "2.1.0"))
-      assert(SbtProjectConfig.referencedRepos.contains("Typesafe Releases"))
-      assert(!SbtProjectConfig.referencedRepos.contains("Typesafe Snapshots"))
+      expect("http://repo.typesafe.com/typesafe/releases/", "")(vToRepo.maybeAddRepo("akka", "2.1.0"))
       expect("http://repo.typesafe.com/typesafe/releases/", "") (SbtProjectConfig.repoUrl("Typesafe Releases"))
 
-      expect("http://repo.typesafe.com/typesafe/snapshots/", "")(vToRepo("akka", "2.1.0-SNAPSHOT"))
+      expect("http://repo.typesafe.com/typesafe/snapshots/", "")(vToRepo.maybeAddRepo("akka", "2.1.0-SNAPSHOT"))
       assert(SbtProjectConfig.referencedRepos.contains("Typesafe Snapshots"))
 
-      expect("", "")(vToRepo("dbpool", "")) // special case; no repo
-      expect("", "")(vToRepo("blah", "1.2.3"))
+      expect("", "")(vToRepo.maybeAddRepo("dbpool", "")) // special case; no repo
+      expect("", "")(vToRepo.maybeAddRepo("blah", "1.2.3"))
     }
 
     "gracefully reject undefined entries" in {

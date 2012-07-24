@@ -28,6 +28,14 @@ file:///E:/work/config/test.conf
 [An example of a compatible HOCON-format file](https://raw.github.com/mslinn/config/v2/src/main/resources/definitions.conf)
 is provided with this project.
 
+If the HOCON dependency definition file contains repository information, that information can be used to automatically
+compute the necessary resolvers for the project dependencies. In order to do this, two sections must be added to the
+HOCON file: a `repositories` section that lists the names and URLs of each repository, and a `vToRepo` section that
+provides a mapping of each dependency to the repositories. The value of the `vToRepo` section entries can either be
+specified as single repository names, or they can be a two-element array of repository names. This allows dependencies
+to be specified with repositories for released versions and snapshot versions, or just released versions.
+See the usage example below for an example.
+
 ## Installation
 
  1. Get and install SBT from
@@ -54,7 +62,8 @@ See the [ConfigTest](https://github.com/mslinn/configTest) project for a small b
 use `SbtProjectConfig`.
 
 In the following sample `build.scala`, note that `V()` defines version numbers of dependencies, `creds()` defines
-userid and password, and `servers()` defines URLs of remote resources.
+userid and password, and `servers()` defines URLs of remote resources. This example uses `SbtProjectConfig`'s optional
+automatic repository computation feature:
 
 ````
 import com.bookish.config.{SbtProjectConfig, V, creds, servers}
@@ -70,6 +79,19 @@ val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V("Akka")    withSour
 val junit     = "junit"             %  "junit"           % V("junit")   % "test"
 val logback   = "ch.qos.logback"    %  "logback-classic" % V("logback") withSources()
 
+// this section must follow the V() dependency usages in order to work, because referencedRepos is set as a side-effect
+// of each V() usage
+resolvers ++= referencedRepos.map { r =>
+      //println("Adding resolver: " + r)
+      (r at repositories(r))
+    }.toSeq
+
+// alternatively, if you prefer to specify resolvers manually:
+//resolvers = Seq( // choice of ++= or = depends on your needs
+//  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases/",
+//  "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
+//)
+
 // Use configured credentials authentication
 credentials += Credentials("Artifactory Realm", "mysrvr", creds("userid"), creds("password"))
 
@@ -81,3 +103,4 @@ publishTo <<= (version) { version: String =>
     Some("bookish" at servers("artifactory") + "libs-release-local/")
 }
 ````
+## Sample Usage 1
