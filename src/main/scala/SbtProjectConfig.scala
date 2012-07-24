@@ -43,13 +43,16 @@ object SbtProjectConfig {
   var fetchFromUrl: String = sampleUrl
 
   var quiet: Boolean = false
+
+  val referencedRepos = mutable.HashSet.empty[String]
+
+  def repoUrl(repoName: String): String = repositories.keyValues.getOrElse(repoName, "").toString
 }
 
 class SbtProjectConfig {
-  private val keyValues = mutable.HashMap.empty[String, Any]
-  val alreadyShown = mutable.HashSet.empty[String]
-
-  private val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
+  private[config] val alreadyShown = mutable.HashSet.empty[String]
+  private[config] val keyValues = mutable.HashMap.empty[String, Any]
+  private[config] val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
 //  println("Config fetched from %s:\n%s".format(url, entireConfig.toString))
 
   def apply(key: String) = {
@@ -69,7 +72,7 @@ class SbtProjectConfig {
 
   def apply(key: String, version: String): String = {
     val value = apply(key)
-    val repo = if (version.endsWith("SNAPSHOT")) {
+    val repo: String = if (version.endsWith("SNAPSHOT")) {
       if (value.isInstanceOf[util.ArrayList[String]] && value.asInstanceOf[util.ArrayList[String]].length>1)
         value.asInstanceOf[util.ArrayList[String]](1)
       else
@@ -81,7 +84,10 @@ class SbtProjectConfig {
         value.toString
     }
     //println(repositories.keyValues)
-    repositories.keyValues.getOrElse(repo, "").toString
+    val repoUrl: String = repositories.keyValues.getOrElse(repo, "").toString
+    if (repoUrl.length>0)
+      referencedRepos += repo
+    repoUrl
   }
 
   /** Work around Config peculiarity */
