@@ -82,13 +82,12 @@ val logback   = "ch.qos.logback"    %  "logback-classic" % V("logback") withSour
 // this section must follow the V() dependency usages in order to work, because referencedRepos is set as a side-effect
 // of each V() usage
 resolvers ++= referencedRepos.map { r =>
-      //println("Adding resolver: " + r)
-      (r at repositories(r))
-    }.toSeq
-
+  //println("Adding resolver: " + r)
+  (r at repositories(r))
+}.toSeq
 
 // manually create entries in referencedRepos for transitive dependencies not found by the resolvers that were
-// automatically set up, because SbtProjectConfig is dumb
+// automatically set up, because SbtProjectConfig does not walk through the Ivy cache
 Seq( V("antiXml"), V("liftJson") )
 
 // alternatively, if you prefer to specify resolvers manually:
