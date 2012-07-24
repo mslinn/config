@@ -55,7 +55,7 @@ class SbtProjectConfig {
   private[config] val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
 //  println("Config fetched from %s:\n%s".format(url, entireConfig.toString))
 
-  def apply(key: String) = {
+  def apply(key: String): String = {
     val sanitizedKey = sanitizeKey(key)
     val value = keyValues.get(sanitizedKey)
     if (value!=None) {
@@ -63,7 +63,7 @@ class SbtProjectConfig {
         alreadyShown += sanitizedKey
         println("  %s = %s".format(sanitizedKey, value.get))
       }
-      value.get
+      value.get.toString
     } else {
       println("Warning: %s is not defined in the config file at %s".format(sanitizedKey, fetchFromUrl))
       ""
