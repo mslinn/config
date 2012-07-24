@@ -46,6 +46,13 @@ class SbtProjectConfigTest extends MustMatchers with WordSpec with BeforeAndAfte
       expect("http://repo.typesafe.com/typesafe/releases/", "")(repositories("Typesafe Releases"))
     }
 
+    "create vToRepo entries" in {
+      expect("http://repo.typesafe.com/typesafe/releases/", "")(vToRepo("akka", "2.1.0"))
+      expect("http://repo.typesafe.com/typesafe/snapshots/", "")(vToRepo("akka", "2.1.0-SNAPSHOT"))
+      expect("", "")(vToRepo("dbpool", "")) // special case; no repo
+      expect("", "")(vToRepo("blah", "1.2.3"))
+    }
+
     "gracefully reject undefined entries" in {
       expect("", "")(V("blah"))
     }

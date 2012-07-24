@@ -5,7 +5,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import java.net.URL
 import scala.collection.mutable
 import collection.JavaConversions._
-import collection.immutable.SortedMap
+import collection.immutable
+import java.util
 
 object V extends SbtProjectConfig {
   val lookup = new Lookup("versions", "versions of dependencies")
@@ -45,7 +46,7 @@ object SbtProjectConfig {
 }
 
 class SbtProjectConfig {
-  private val keyValues = mutable.HashMap.empty[String, String]
+  private val keyValues = mutable.HashMap.empty[String, Any]
   val alreadyShown = mutable.HashSet.empty[String]
 
   private val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
@@ -66,16 +67,34 @@ class SbtProjectConfig {
     }
   }
 
-  /** Work around Config bug */
+  def apply(key: String, version: String): String = {
+    val value = apply(key)
+    val repo = if (version.endsWith("SNAPSHOT")) {
+      if (value.isInstanceOf[util.ArrayList[String]] && value.asInstanceOf[util.ArrayList[String]].length>1)
+        value.asInstanceOf[util.ArrayList[String]](1)
+      else
+        "problemFound"
+    } else {
+      if (value.isInstanceOf[util.ArrayList[String]] && value.asInstanceOf[util.ArrayList[String]].length>1)
+        value.asInstanceOf[util.ArrayList[String]](0)
+      else
+        value.toString
+    }
+    //println(repositories.keyValues)
+    repositories.keyValues.getOrElse(repo, "").toString
+  }
+
+  /** Work around Config peculiarity */
   def sanitizeKey(key: String) = key.replace("\"", " ").trim
 
-  def makeSettings(lookup: Lookup): SortedMap[String, String] = {
+  /** Only invoked by vToRepo */
+  def makeSettings(lookup: Lookup): immutable.Map[String, Any] = {
     lookup.config.entrySet foreach { kv =>
       val key = kv.getKey
-      val value = kv.getValue.unwrapped.toString
+      val value = kv.getValue.unwrapped
       keyValues.put(sanitizeKey(key), value)
     }
-    SortedMap.empty[String, String] ++ (keyValues.toList.sortBy(_._1))
+    keyValues.toMap[String, Any]
   }
 
   class Lookup(val section: String, label: String="") {
