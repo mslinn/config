@@ -55,7 +55,9 @@ class SbtProjectConfig {
   private[config] val entireConfig: Config = ConfigFactory.parseURL(new URL(fetchFromUrl))
 //  println("Config fetched from %s:\n%s".format(url, entireConfig.toString))
 
-  def apply(key: String): String = {
+  def apply(key: String): String = get(key).toString
+
+  def get(key: String): Any = {
     val sanitizedKey = sanitizeKey(key)
     val value = keyValues.get(sanitizedKey)
     if (value!=None) {
@@ -63,7 +65,7 @@ class SbtProjectConfig {
         alreadyShown += sanitizedKey
         println("  %s = %s".format(sanitizedKey, value.get))
       }
-      value.get.toString
+      value.get
     } else {
       println("Warning: %s is not defined in the config file at %s".format(sanitizedKey, fetchFromUrl))
       ""
@@ -71,7 +73,7 @@ class SbtProjectConfig {
   }
 
   def apply(key: String, version: String): String = {
-    val value = apply(key)
+    val value = get(key)
     val repo: String = if (version.endsWith("SNAPSHOT")) {
       if (value.isInstanceOf[util.ArrayList[String]] && value.asInstanceOf[util.ArrayList[String]].length>1)
         value.asInstanceOf[util.ArrayList[String]](1)
@@ -85,8 +87,10 @@ class SbtProjectConfig {
     }
     //println(repositories.keyValues)
     val repoUrl: String = repositories.keyValues.getOrElse(repo, "").toString
-    if (repoUrl.length>0)
+    if (repoUrl.length>0) {
       referencedRepos += repo
+      println("Adding %s to referencedRepos".format(repo))
+    }
     repoUrl
   }
 
