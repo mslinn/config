@@ -86,6 +86,11 @@ resolvers ++= referencedRepos.map { r =>
       (r at repositories(r))
     }.toSeq
 
+
+// manually create entries in referencedRepos for transitive dependencies not found by the resolvers that were
+// automatically set up, because SbtProjectConfig is dumb
+Seq( V("antiXml"), V("liftJson") )
+
 // alternatively, if you prefer to specify resolvers manually:
 //resolvers = Seq( // choice of ++= or = depends on your needs
 //  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases/",
@@ -103,4 +108,3 @@ publishTo <<= (version) { version: String =>
     Some("bookish" at servers("artifactory") + "libs-release-local/")
 }
 ````
-## Sample Usage 1
