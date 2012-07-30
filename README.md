@@ -20,10 +20,8 @@ location for usage by all of your organization's projects.
 Examples of the URI would include the a file on a local drive or an Internet address.
 Here are some examples of valid `fetchFromUrl` values:
 
-````
-https://raw.github.com/mslinn/config/v3/src/main/resources/definitions.conf
-file:///E:/work/config/test.conf
-````
+    https://raw.github.com/mslinn/config/v3/src/main/resources/definitions.conf
+    file:///E:/work/config/test.conf
 
 [An example of a compatible HOCON-format file](https://raw.github.com/mslinn/config/v2/src/main/resources/definitions.conf)
 is provided with this project.
@@ -43,18 +41,19 @@ See the usage example below for an example.
 https://github.com/harrah/xsbt
 ````
 
- 1. Build and publish `SbtProjectConfig`:
-````
-git clone git@github.com/Bookish/config.git
-cd config
-sbt publish-local
-````
-
  1. Add this to your project's `project/build.sbt` (remember that file requires double-spacing).
 Note that this SBT enhancement is not a plug-in.
-````
-libraryDependencies += "com.bookish" % "config" % "0.3.1-SNAPSHOT" withSources()
-````
+
+        libraryDependencies += "com.bookish" % "config" % "0.4.0-SNAPSHOT" withSources()
+
+        // The sbt-plugin-releases resolver should not be required for SBT 0.12, but it is required for SBT 0.11.3:
+
+        //resolvers += Resolver.url("sbt-plugin-releases", new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
+
+        // The following resolver will continue to be required for SNAPSHOTS:
+
+        resolvers += Resolver.url("sbt-plugin-snapshots", new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-snapshots/"))(Resolver.ivyStylePatterns)
+
 
 ## Sample Usage
 
@@ -65,46 +64,44 @@ In the following sample `build.scala`, note that `V()` defines version numbers o
 userid and password, and `servers()` defines URLs of remote resources. This example uses `SbtProjectConfig`'s optional
 automatic repository computation feature:
 
-````
-import com.bookish.config.{SbtProjectConfig, V, creds, servers}
-import sbt._
-import Keys._
+    import com.bookish.config.{SbtProjectConfig, V, creds, servers}
+    import sbt._
+    import Keys._
 
-// Point to the appropriate configuration file
-SbtProjectConfig.fetchFromUrl = "https://raw.github.com/Bookish/config/v3/src/main/resources/definitions.conf"
-SbtProjectConfig.quiet        = true
+    // Point to the appropriate configuration file
+    SbtProjectConfig.fetchFromUrl = "https://raw.github.com/Bookish/config/v3/src/main/resources/definitions.conf"
+    SbtProjectConfig.quiet        = true
 
-// Use configured versions for dependencies
-val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V("Akka")    withSources()
-val junit     = "junit"             %  "junit"           % V("junit")   % "test"
-val logback   = "ch.qos.logback"    %  "logback-classic" % V("logback") withSources()
+    // Use configured versions for dependencies
+    val akkaActor = "com.typesafe.akka" %  "akka-actor"      % V("Akka")    withSources()
+    val junit     = "junit"             %  "junit"           % V("junit")   % "test"
+    val logback   = "ch.qos.logback"    %  "logback-classic" % V("logback") withSources()
 
-// this section must follow the V() dependency usages in order to work, because referencedRepos is set as a side-effect
-// of each V() usage. If you build file has a different structure, possibly using lazy vals, be sure that all the V()
-// dependency usages are evaluated before this section is executed
-resolvers ++= referencedRepos.map { r =>
-  //println("Adding resolver: " + r)
-  (r at repositories(r))
-}.toSeq
+    // this section must follow the V() dependency usages in order to work, because referencedRepos is set as a side-effect
+    // of each V() usage. If you build file has a different structure, possibly using lazy vals, be sure that all the V()
+    // dependency usages are evaluated before this section is executed
+    resolvers ++= referencedRepos.map { r =>
+      //println("Adding resolver: " + r)
+      (r at repositories(r))
+    }.toSeq
 
-// manually create entries in referencedRepos for transitive dependencies not found by the resolvers that were
-// automatically set up, because `SbtProjectConfig` does not walk the Ivy cache
-Seq( V("antiXml"), V("liftJson") )
+    // manually create entries in referencedRepos for transitive dependencies not found by the resolvers that were
+    // automatically set up, because `SbtProjectConfig` does not walk the Ivy cache
+    Seq( V("antiXml"), V("liftJson") )
 
-// alternatively, if you prefer to specify resolvers manually:
-//resolvers = Seq( // choice of ++= or = depends on your needs
-//  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases/",
-//  "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
-//)
+    // alternatively, if you prefer to specify resolvers manually:
+    //resolvers = Seq( // choice of ++= or = depends on your needs
+    //  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases/",
+    //  "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
+    //)
 
-// Use configured credentials authentication
-credentials += Credentials("Artifactory Realm", "mysrvr", creds("userid"), creds("password"))
+    // Use configured credentials authentication
+    credentials += Credentials("Artifactory Realm", "mysrvr", creds("userid"), creds("password"))
 
-// Access configured servers
-publishTo <<= (version) { version: String =>
-  if (version.trim.endsWith("SNAPSHOT"))
-    Some("bookish" at servers("artifactory") + "libs-snapshot-local/")
-  else
-    Some("bookish" at servers("artifactory") + "libs-release-local/")
-}
-````
+    // Access configured servers
+    publishTo <<= (version) { version: String =>
+      if (version.trim.endsWith("SNAPSHOT"))
+        Some("bookish" at servers("artifactory") + "libs-snapshot-local/")
+      else
+        Some("bookish" at servers("artifactory") + "libs-release-local/")
+    }
