@@ -12,8 +12,6 @@ scalacOptions	    ++= Seq("-deprecation", "-unchecked")
 
 libraryDependencies += "com.typesafe"  %  "config"   % "0.5.0" withSources()
 
-//libraryDependencies += "org.scala-sbt" %%  "sbt"     % "0.11.3" withSources()
-
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.7.1" % "test" withSources()
 
 credentials         += Credentials("Artifactory Realm", "ci-sb-1.obi.int", "publisher", "itouchb00ks")
@@ -21,18 +19,12 @@ credentials         += Credentials("Artifactory Realm", "ci-sb-1.obi.int", "publ
 publishArtifact in Test := false
 
 publishTo <<= (version) { version: String =>
-val artifactory = "http://ci-sb-1.obi.int:8081/artifactory/"
-  if (version.trim.endsWith("SNAPSHOT"))
-    Some("bookish" at artifactory + "libs-snapshot-local/")
-  else
-    Some("bookish" at artifactory + "libs-release-local/")
+   val scalasbt = "http://scalasbt.artifactoryonline.com/scalasbt/"
+   val (name, url) = if (version.contains("-SNAPSHOT"))
+                       ("sbt-plugin-snapshots", scalasbt+"sbt-plugin-snapshots")
+                     else
+                       ("sbt-plugin-releases", scalasbt+"sbt-plugin-releases")
+   Some(Resolver.url(name, new URL(url))(Resolver.ivyStylePatterns))
 }
 
-//artifactName := { (config: String, module: ModuleID, artifact: Artifact) =>
-//  "asdf-" + artifact.name + "-" + module.revision + "." + artifact.extension
-//}
-
-//artifactPath := {
-//  (crossTarget, projectID, art, scalaVersion, artifactName) =>
-//    crossTarget / toString(scalaVersion, "qwer" + projectID, art) asFile
-//}
+publishMavenStyle := false
