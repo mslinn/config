@@ -34,6 +34,9 @@ specified as single repository names, or they can be a two-element array of repo
 to be specified with repositories for released versions and snapshot versions, or just released versions.
 See the usage example below for an example.
 
+This project was sponsored by [Bookish, LLC](http://bookish.com).
+
+
 ## Installation
 
  1. Get and install SBT from
